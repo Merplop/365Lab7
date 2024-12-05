@@ -29,7 +29,7 @@ def main():
         elif command == "2":  # Reservations
             Reservations()
         elif command == "3":  # Reservation Cancellation
-            print("Feature not implemented yet.")
+            CancelReservation()
         elif command == "4":  # Detailed Reservation Information
             print("Feature not implemented yet.")
         elif command == "5":  # Revenue
@@ -110,6 +110,50 @@ def Reservations():
             # Handle room selection and booking here...
     except Exception as e:
         print(f"Error processing reservation: {e}")
+
+def CancelReservation():
+    """Cancel an existing reservation."""
+    try:
+        #get res code
+        reservation_code = input("Enter the reservation code to cancel: ").strip()
+
+        #create queries
+        check_query = "SELECT * FROM lab7_reservations WHERE CODE = %s"
+        delete_query = "DELETE FROM lab7_reservations WHERE CODE = %s"
+
+        #check code exist
+        cursor = conn.cursor(dictionary=True)  
+        cursor.execute(check_query, (reservation_code,))
+        reservation = cursor.fetchone()
+
+        if not reservation:
+            print("No reservation found with the given code. Please try again.")
+            return
+
+        #details
+        print(f"\nReservation Details:")
+        print(f"Reservation Code: {reservation['CODE']}")
+        print(f"Name: {reservation['FirstName']} {reservation['LastName']}")
+        print(f"Room: {reservation['Room']}")
+        print(f"Check-In: {reservation['CheckIn']}")
+        print(f"Check-Out: {reservation['Checkout']}")
+        
+        #confirm
+        confirm = input("Are you sure you want to cancel this reservation? (yes/no): ").strip().lower()
+        if confirm != "yes":
+            print("Cancellation aborted.")
+            return
+
+        #final delete
+        cursor.execute(delete_query, (reservation_code,))
+        conn.commit()
+        print("Reservation successfully canceled.")
+
+    except Exception as e:
+        print(f"Error canceling reservation: {e}")
+    finally:
+        cursor.close()
+
 
 if __name__ == "__main__":
     main()
